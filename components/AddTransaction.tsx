@@ -1,5 +1,12 @@
 import * as React from "react";
-import { Button, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  BackHandler,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Card from "./ui/Card";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
@@ -25,6 +32,23 @@ export default function AddTransaction({
   React.useEffect(() => {
     getExpenseType(currentTab);
   }, [currentTab]);
+
+  React.useEffect(() => {
+    const backAction = () => {
+      if (isAddingTransaction) {
+        setIsAddingTransaction(false);
+        return true; // Prevent default behavior (exit app)
+      }
+      return false; // Default behavior (exit app)
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [isAddingTransaction]);
 
   async function getExpenseType(currentTab: number) {
     setCategory(currentTab === 0 ? "Expense" : "Income");
@@ -76,6 +100,7 @@ export default function AddTransaction({
                 const numericValue = text.replace(/[^0-9.]/g, "");
                 setAmount(numericValue);
               }}
+              autoFocus
             />
             <TextInput
               placeholder="Description"
@@ -86,7 +111,7 @@ export default function AddTransaction({
             <SegmentedControl
               values={["Expense", "Income"]}
               style={{ marginBottom: 15 }}
-              selectedIndex={0}
+              selectedIndex={currentTab}
               onChange={(event) => {
                 setCurrentTab(event.nativeEvent.selectedSegmentIndex);
               }}
@@ -104,13 +129,36 @@ export default function AddTransaction({
             ))}
           </Card>
           <View
-            style={{ flexDirection: "row", justifyContent: "space-around" }}>
-            <Button
-              title="Cancel"
-              color="red"
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-around",
+              marginTop: 15,
+            }}>
+            <Pressable
               onPress={() => setIsAddingTransaction(false)}
-            />
-            <Button title="Save" onPress={handleSave} />
+              style={{
+                padding: 10,
+                alignItems: "center",
+                flexDirection: "row",
+                gap: 5,
+              }}>
+              <MaterialIcons name="cancel" size={24} color="red" />
+              <Text style={{ color: "red" }}>Cancel</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleSave}
+              style={{
+                padding: 10,
+                alignItems: "center",
+                flexDirection: "row",
+                gap: 5,
+                backgroundColor: "green",
+                borderRadius: 10,
+              }}>
+              <MaterialIcons name="save" size={24} color="white" />
+              <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
+            </Pressable>
           </View>
         </View>
       ) : (
